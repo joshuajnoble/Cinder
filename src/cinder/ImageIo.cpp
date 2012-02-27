@@ -278,6 +278,8 @@ ImageSource::RowFunc ImageSource::setupRowFuncForTypesAndTargetColorModel( Image
 	switch( mColorModel ) {
 		case CM_RGB: {
 			setupRowFuncRgbSource( target );
+			if( mCustomPixelInc != 0 )
+				mRowFuncSourceInc = mCustomPixelInc;
 			bool alpha = ( mRowFuncSourceAlpha != -1 ) && ( mRowFuncTargetAlpha != -1 );
 			if( alpha )
 				return &ImageSource::rowFuncSourceRgb<SD,TD,TCM,true>;
@@ -287,6 +289,8 @@ ImageSource::RowFunc ImageSource::setupRowFuncForTypesAndTargetColorModel( Image
 		break;
 		case CM_GRAY: {
 			setupRowFuncGraySource( target );
+			if( mCustomPixelInc != 0 )
+				mRowFuncSourceInc = mCustomPixelInc;
 			bool alpha = ( mRowFuncSourceAlpha != -1 ) && ( mRowFuncTargetAlpha != -1 );
 			if( alpha )
 				return &ImageSource::rowFuncSourceGray<SD,TD,TCM,true>;
@@ -354,9 +358,9 @@ ImageSource::RowFunc ImageSource::setupRowFunc( ImageTargetRef target )
 
 
 ///////////////////////////////////////////////////////////////////////////////
-ImageSourceRef loadImage( const std::string &path, ImageSource::Options options, string extension )
+ImageSourceRef loadImage( const fs::path &path, ImageSource::Options options, string extension )
 {
-	return loadImage( DataSourcePath::createRef( path ), options, extension );
+	return loadImage( (DataSourceRef)DataSourcePath::create( path ), options, extension );
 }
 
 ImageSourceRef loadImage( DataSourceRef dataSource, ImageSource::Options options, string extension )
@@ -371,9 +375,9 @@ ImageSourceRef loadImage( DataSourceRef dataSource, ImageSource::Options options
 	return ImageIoRegistrar::createSource( dataSource, options, extension );
 }
 
-void writeImage( const std::string &path, const ImageSourceRef &imageSource, ImageTarget::Options options, std::string extension )
+void writeImage( const fs::path &path, const ImageSourceRef &imageSource, ImageTarget::Options options, std::string extension )
 {
-	writeImage( writeFile( path ), imageSource, options, extension );
+	writeImage( (DataTargetRef)writeFile( path ), imageSource, options, extension );
 }
 
 void writeImage( DataTargetRef dataTarget, const ImageSourceRef &imageSource, ImageTarget::Options options, string extension )

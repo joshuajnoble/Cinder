@@ -58,6 +58,8 @@ class RectT {
 	Area		getInteriorArea() const;
 	void		offset( const Vec2<T> &offset );
 	RectT		getOffset( const Vec2<T> &off ) const { RectT result( *this ); result.offset( off ); return result; }
+	void		inflate( const Vec2<T> &amount );
+	RectT		inflated( const Vec2<T> &amount ) const;
 	//! Translates the rectangle so that its center is at \a center
 	void		offsetCenterTo( const Vec2<T> &center ) { offset( center - getCenter() ); }
 	void		scaleCentered( const Vec2<T> &scale );
@@ -71,6 +73,14 @@ class RectT {
 	bool		contains( const Vec2<Y> &pt ) const { return ( pt.x >= x1 ) && ( pt.x <= x2 ) && ( pt.y >= y1 ) && ( pt.y <= y2 ); }
 	//! Returns whether \a rect intersects with this
 	bool		intersects( const RectT &rect ) const;
+
+	//! Returns the distance between the point \a pt and the rectangle. Points inside the rectangle return \c 0.
+	T		distance( const Vec2<T> &pt ) const;
+	//! Returns the squared distance between the point \a pt and the rectangle. Points inside the rectangle return \c 0.
+	T		distanceSquared( const Vec2<T> &pt ) const;
+
+	//! Returns the nearest point on the Rect \a rect. Points inside the rectangle return \a pt.
+	Vec2<T>		closestPoint( const Vec2<T> &pt ) const;
 
 	T		getX1() const { return x1; }
 	T		getY1() const { return y1; }

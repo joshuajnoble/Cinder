@@ -82,7 +82,7 @@ class ImageIo {
 
 class ImageSource : public ImageIo {
   public:
-	ImageSource() : ImageIo(), mIsPremultiplied( false ), mPixelAspectRatio( 1 ) {}
+	ImageSource() : ImageIo(), mIsPremultiplied( false ), mPixelAspectRatio( 1 ), mCustomPixelInc( 0 ) {}
 	virtual ~ImageSource() {}  
 
 	class Options {
@@ -110,7 +110,9 @@ class ImageSource : public ImageIo {
   protected:
 	void		setPixelAspectRatio( float pixelAspectRatio ) { mPixelAspectRatio = pixelAspectRatio; }
 	void		setPremultiplied( bool premult = true ) { mIsPremultiplied = premult; }
-  
+	//! Allows declaration of a pixel increment different from what its ColorModel would imply. For example a non-planar Channel.
+	void		setCustomPixelInc( int8_t customPixelInc ) { mCustomPixelInc = customPixelInc; }
+
 	RowFunc		setupRowFunc( ImageTargetRef target );
 	void		setupRowFuncRgbSource( ImageTargetRef target );
 	void		setupRowFuncGraySource( ImageTargetRef target );
@@ -128,6 +130,7 @@ class ImageSource : public ImageIo {
 
 	float						mPixelAspectRatio;
 	bool						mIsPremultiplied;
+	int8_t						mCustomPixelInc;
 	
 	int8_t						mRowFuncSourceRed, mRowFuncSourceGreen, mRowFuncSourceBlue, mRowFuncSourceAlpha;
 	int8_t						mRowFuncTargetRed, mRowFuncTargetGreen, mRowFuncTargetBlue, mRowFuncTargetAlpha;
@@ -167,14 +170,14 @@ class ImageTarget : public ImageIo {
 };
 
 //! Loads an image from the file path \a path. Optional \a extension parameter allows specification of a file type. For example, "jpg" would force the file to load as a JPEG
-ImageSourceRef	loadImage( const std::string &path, ImageSource::Options options = ImageSource::Options(), std::string extension = "" );
+ImageSourceRef	loadImage( const fs::path &path, ImageSource::Options options = ImageSource::Options(), std::string extension = "" );
 //! Loads an image from \a dataSource. Optional \a extension parameter allows specification of a file type. For example, "jpg" would force the file to load as a JPEG
 ImageSourceRef	loadImage( DataSourceRef dataSource, ImageSource::Options options = ImageSource::Options(), std::string extension = "" );
 /** \brief Writes \a imageSource to \a dataTarget. Optional \a extension parameter allows specification of a file type. For example, "jpg" would force the file to load as a JPEG **/
 void			writeImage( DataTargetRef dataTarget, const ImageSourceRef &imageSource, ImageTarget::Options options = ImageTarget::Options(), std::string extension = "" );
 /** Writes \a imageSource to file path \a path. Optional \a extension parameter allows specification of a file type. For example, "jpg" would force the file to load as a JPEG
  * \note If \a path does not exist, the necessary directories are created automatically. **/
-void			writeImage( const std::string &path, const ImageSourceRef &imageSource, ImageTarget::Options options = ImageTarget::Options(), std::string extension = "" );
+void			writeImage( const fs::path &path, const ImageSourceRef &imageSource, ImageTarget::Options options = ImageTarget::Options(), std::string extension = "" );
 /** \brief Writes \a imageSource to \a imageTarget. **/
 void			writeImage( ImageTargetRef imageTarget, const ImageSourceRef &imageSource );
 

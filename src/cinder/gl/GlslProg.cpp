@@ -35,15 +35,22 @@ GlslProg::Obj::~Obj()
 
 //////////////////////////////////////////////////////////////////////////
 // GlslProg
+<<<<<<< HEAD
 GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader, DataSourceRef geometryShader, GeometryShaderSettings* opts )
 : mObj( shared_ptr<Obj>( new Obj ) )
+=======
+    GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader, DataSourceRef geometryShader, GLint geometryInputType, GLint geometryOutputType, GLint geometryOutputVertices)
+	: mObj( shared_ptr<Obj>( new Obj ) )
+>>>>>>> 1b329b26351ee8277a6caaeebecacc1ed3cee940
 {
 	mObj->mHandle = glCreateProgram();
 	
 	if ( vertexShader )
 		loadShader( vertexShader->getBuffer(), GL_VERTEX_SHADER_ARB );
+    
 	if( fragmentShader )
 		loadShader( fragmentShader->getBuffer(), GL_FRAGMENT_SHADER_ARB );
+<<<<<<< HEAD
 	if( geometryShader ) 
 		loadShader( geometryShader->getBuffer(), GL_GEOMETRY_SHADER_EXT, opts );
 	
@@ -52,17 +59,45 @@ GlslProg::GlslProg( DataSourceRef vertexShader, DataSourceRef fragmentShader, Da
 	
 	
 GlslProg::GlslProg( const char *vertexShader, const char *fragmentShader, const char *geometryShader, GeometryShaderSettings* opts )
+=======
+    
+	if( geometryShader ) {
+		loadShader( geometryShader->getBuffer(), GL_GEOMETRY_SHADER_EXT );
+        
+        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_INPUT_TYPE_EXT, geometryInputType);
+        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_OUTPUT_TYPE_EXT, geometryOutputType);
+        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_VERTICES_OUT_EXT, geometryOutputVertices);
+    }
+    
+	link();
+}
+
+GlslProg::GlslProg( const char *vertexShader, const char *fragmentShader, const char *geometryShader, GLint geometryInputType, GLint geometryOutputType, GLint geometryOutputVertices)
+>>>>>>> 1b329b26351ee8277a6caaeebecacc1ed3cee940
 	: mObj( shared_ptr<Obj>( new Obj ) )
 {
 	mObj->mHandle = glCreateProgram();
 	
 	if ( vertexShader )
 		loadShader( vertexShader, GL_VERTEX_SHADER_ARB );
+    
 	if( fragmentShader )
 		loadShader( fragmentShader, GL_FRAGMENT_SHADER_ARB );
+<<<<<<< HEAD
 	if( geometryShader )
 		loadShader( geometryShader, GL_GEOMETRY_SHADER_EXT, opts );
 
+=======
+    
+	if( geometryShader ) {
+		loadShader( geometryShader, GL_GEOMETRY_SHADER_EXT );
+        
+        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_INPUT_TYPE_EXT, geometryInputType);
+        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_OUTPUT_TYPE_EXT, geometryOutputType);
+        glProgramParameteriEXT(mObj->mHandle, GL_GEOMETRY_VERTICES_OUT_EXT, geometryOutputVertices);
+    }
+    
+>>>>>>> 1b329b26351ee8277a6caaeebecacc1ed3cee940
 	link();
 }
 
@@ -243,6 +278,12 @@ void GlslProg::uniform( const std::string &name, const Vec4f *data, int count )
 {
 	GLint loc = getUniformLocation( name );
 	glUniform4fv( loc, count, &data[0].x );
+}
+
+void GlslProg::uniform( const std::string &name, const Matrix33f &data, bool transpose )
+{
+	GLint loc = getUniformLocation( name );
+	glUniformMatrix3fv( loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE, data.m );
 }
 
 void GlslProg::uniform( const std::string &name, const Matrix44f &data, bool transpose )

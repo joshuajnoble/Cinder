@@ -57,7 +57,7 @@
 
 // forward declarations
 namespace cinder {
-	class Camera; class TriMesh; class Sphere;
+	class Camera; class TriMesh2d; class TriMesh; class Sphere;
 	namespace gl {
 		 class VboMesh; class Texture;
 	}
@@ -70,6 +70,13 @@ bool isExtensionAvailable( const std::string &extName );
 
 //! Clears the OpenGL color buffer using \a color and optionally clears the depth buffer when \a clearDepthBuffer
 void clear( const ColorA &color = ColorA::black(), bool clearDepthBuffer = true );
+
+//! Enables or disables wait for vertical sync
+void enableVerticalSync( bool enable = true );
+//! Disables wait for vertical sync
+inline void disableVerticalSync() { enableVerticalSync( false ); }
+//! Returns whether vertical sync is enabled for the current context
+bool isVerticalSyncEnabled();
 
 //! Sets the \c MODELVIEW and \c PROJECTION matrices to reflect the values of \a cam. Leaves the \c MatrixMode as \c MODELVIEW.
 void setMatrices( const Camera &cam );
@@ -115,10 +122,22 @@ void setViewport( const Area &area );
 
 //! Produces a translation by \a pos in the current matrix.
 void translate( const Vec2f &pos );
+//! Produces a translation by \a x and \a y in the current matrix.
+inline void translate( float x, float y ) { translate( Vec2f( x, y ) ); }
 //! Produces a translation by \a pos in the current matrix.
 void translate( const Vec3f &pos );
-//! Produces a scale by \a pos in the current matrix.
-void scale( const Vec3f &scale );
+//! Produces a translation by \a x, \a y and \a z in the current matrix.
+inline void translate( float x, float y, float z ) { translate( Vec3f( x, y, z ) ); }
+
+//! Produces a scale by \a scale in the current matrix.
+void scale( const Vec3f &scl );
+//! Produces a scale by \a scl in the current matrix.
+inline void scale( const Vec2f &scl ) { scale( Vec3f( scl.x, scl.y, 0 ) ); }
+//! Produces a scale by \a x and \a y in the current matrix.
+inline void scale( float x, float y ) { scale( Vec3f( x, y, 0 ) ); }
+//! Produces a scale by \a x, \a y and \a z in the current matrix.
+inline void scale( float x, float y, float z ) { scale( Vec3f( x, y, z ) ); }
+
 //! Produces a rotation around the X-axis by \a xyz.x degrees, the Y-axis by \a xyz.y degrees and the Z-axis by \a xyz.z degrees in the current matrix. Processed in X-Y-Z order.
 void rotate( const Vec3f &xyz );
 //! Produces a rotation by the quaternion \a quat in the current matrix.
@@ -130,8 +149,16 @@ inline void rotate( float degrees ) { rotate( Vec3f( 0, 0, degrees ) ); }
 //! Used between calls to \c glBegin and \c glEnd, appends a vertex to the current primitive.
 inline void vertex( const Vec2f &v ) { glVertex2fv( &v.x ); }
 //! Used between calls to \c glBegin and \c glEnd, appends a vertex to the current primitive.
+inline void vertex( float x, float y ) { glVertex2f( x, y ); }
+//! Used between calls to \c glBegin and \c glEnd, appends a vertex to the current primitive.
 inline void vertex( const Vec3f &v ) { glVertex3fv( &v.x ); }
+//! Used between calls to \c glBegin and \c glEnd, appends a vertex to the current primitive.
+inline void vertex( float x, float y, float z ) { glVertex3f( x, y, z ); }
 #endif // ! defined( CINDER_GLES )
+//! Sets the current color and the alpha value to 1.0
+inline void color( float r, float g, float b ) { glColor4f( r, g, b, 1.0f ); }
+//! Sets the current color and alpha value
+inline void color( float r, float g, float b, float a ) { glColor4f( r, g, b, a ); }
 //! Sets the current color, and the alpha value to 1.0
 inline void color( const Color8u &c ) { glColor4ub( c.r, c.g, c.b, 255 ); }
 //! Sets the current color and alpha value
@@ -195,10 +222,16 @@ void draw( const class Sphere &sphere, int segments = 12 );
 void drawSolidCircle( const Vec2f &center, float radius, int numSegments = 0 );
 //! Renders a stroked circle using a line loop. The default value of zero for \a numSegments automatically determines a number of segments based on the circle's circumference.
 void drawStrokedCircle( const Vec2f &center, float radius, int numSegments = 0 );
+//! Renders a solid ellipse using triangle fans. The default value of zero for \a numSegments automatically determines a number of segments based on the ellipse's circumference.
+void drawSolidEllipse( const Vec2f &center, float radiusX, float radiusY, int numSegments = 0 );
+//! Renders a stroked circle using a line loop. The default value of zero for \a numSegments automatically determines a number of segments based on the circle's circumference.
+void drawStrokedEllipse( const Vec2f &center, float radiusX, float radiusY, int numSegments = 0 );
 //! Renders a solid rectangle. Texture coordinates in the range [0,1] are generated unless \a textureRectangle.
 void drawSolidRect( const Rectf &rect, bool textureRectangle = false );
 //! Renders a stroked rectangle.
 void drawStrokedRect( const Rectf &rect );
+void drawSolidRoundedRect( const Rectf &r, float cornerRadius, int numSegmentsPerCorner = 0 );
+void drawStrokedRoundedRect( const Rectf &r, float cornerRadius, int numSegmentsPerCorner = 0 );
 //! Renders a coordinate frame representation centered at the origin. Arrowheads are drawn at the end of each axis with radius \a headRadius and length \a headLength.
 void drawCoordinateFrame( float axisLength = 1.0f, float headLength = 0.2f, float headRadius = 0.05f );
 //! Draws a vector starting at \a start and ending at \a end. An arrowhead is drawn at the end of radius \a headRadius and length \a headLength.
@@ -219,9 +252,18 @@ void draw( const class Path2d &path2d, float approximationScale = 1.0f );
 void draw( const class Shape2d &shape2d, float approximationScale = 1.0f );
 
 #if ! defined( CINDER_GLES )
-//! Draws a solid (filled) Path2d \a path2d using approximation scale \a approximationScale. 1.0 corresponds to screenspace, 2.0 is double screen resolution, etc
-void drawSolid( const class Path2d &path2d, float approximationScale = 1.0f );
 
+//! Draws a solid (filled) Path2d \a path2d using approximation scale \a approximationScale. 1.0 corresponds to screenspace, 2.0 is double screen resolution, etc. Performance warning: This routine tesselates the polygon into triangles. Consider using Triangulator directly.
+void drawSolid( const class Path2d &path2d, float approximationScale = 1.0f );
+//! Draws a solid (filled) Shape2d \a shape2d using approximation scale \a approximationScale. 1.0 corresponds to screenspace, 2.0 is double screen resolution, etc. Performance warning: This routine tesselates the polygon into triangles. Consider using Triangulator directly.
+void drawSolid( const class Shape2d &shape2d, float approximationScale = 1.0f );
+//! Draws a solid (filled) PolyLine2f \a polyLine. Performance warning: This routine tesselates the polygon into triangles. Consider using Triangulator directly.
+void drawSolid( const PolyLine2f &polyLine );
+
+//! Draws a cinder::TriMesh \a mesh at the origin.
+void draw( const TriMesh2d &mesh );
+//! Draws a range of triangles starting with triangle # \a startTriangle and a count of \a triangleCount from cinder::TriMesh \a mesh at the origin.
+void drawRange( const TriMesh2d &mesh, size_t startTriangle, size_t triangleCount );
 //! Draws a cinder::TriMesh \a mesh at the origin.
 void draw( const TriMesh &mesh );
 //! Draws a range of triangles starting with triangle # \a startTriangle and a count of \a triangleCount from cinder::TriMesh \a mesh at the origin.
