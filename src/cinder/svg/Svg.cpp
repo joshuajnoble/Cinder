@@ -1565,7 +1565,8 @@ Shape2d	Rect::getShape() const
 	result.moveTo( mRect.x1, mRect.y1 );
 	result.lineTo( mRect.x2, mRect.y1 );
 	result.lineTo( mRect.x2, mRect.y2 );
-	result.lineTo( mRect.x1, mRect.y2 );	
+	result.lineTo( mRect.x1, mRect.y2 );
+	result.close();
 	return result;
 }
 
@@ -2194,7 +2195,10 @@ void Doc::loadDoc( DataSourceRef source, fs::path filePath )
 		mTransform.setToIdentity();
 
 	// we can't parse the group w/o having parsed the viewBox, dimensions, etc, so we have to do this manually:
-	Group::parse( xml );
+	if( xml.hasChild( "switch" ) )		// when saved with "preserve Illustrator editing capabilities", svg data is inside a "switch"
+		Group::parse( xml.getChild( "switch" ) );
+	else
+		Group::parse( xml );
 }
 
 shared_ptr<Surface8u> Doc::loadImage( fs::path relativePath )
